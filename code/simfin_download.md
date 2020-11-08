@@ -1,3 +1,4 @@
+~~~python
 import simfin as sf
 from IPython.display import clear_output
 
@@ -25,3 +26,4 @@ sf.load_industries()
 
 clear_output()
 print('Data download complete')
+~~~
