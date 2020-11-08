@@ -78,6 +78,11 @@ This dataset looks at bankrupct Polish companies and provides their financial st
 #### Source
 - https://archive.ics.uci.edu/ml/datasets/Polish+companies+bankruptcy+data
 
+### Ranked Choice
+
+- Allen: MiniBooNE  LOL  DOTA2  Bankruptcy  Stocks  Leaves
+
+
 ### HERE WE POST POTENTIAL CODE 
 
 - [A Link](http://google.com)
