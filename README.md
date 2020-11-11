@@ -72,9 +72,9 @@ Some members of MiniBooNE have formed a new collaboration with outside scientist
 2018
 With a study published on arXiv,[3] the Collaboration announced that the finding of neutrino oscillations at MiniBooNE are confirmed at a 4.8 sigma level and, when combined with data at LSND, at a 6.1 sigma level. This hints at the detection of sterile neutrinos and a significant deviation from known physics.[12] The implication of the paper is that some of the muon neutrinos are flipping to sterile neutrinos before switching identity again to electron neutrinos.[13]
 
+[Publication](https://arxiv.org/abs/1702.02688)
 
-
-[Wikipedia](https://en.wikipedia.org/wiki/MiniBooNE#:~:text=MiniBooNE%20is%20an%20experiment%20at,for%20the%20Booster%20Neutrino%20Experiment).&text=An%20excess%20of%20electron%20neutrino,Liquid%20Scintillator%20Neutrino%20Detector)%20result.)
+[Wikipedia](https://en.wikipedia.org/wiki/MiniBooNE#:~:text=MiniBooNE%20is%20an%20experiment%20at,for%20the%20Booster%20Neutrino%20Experiment.&text=An%20excess%20of%20electron%20neutrino,Liquid%20Scintillator%20Neutrino%20Detector)%20result.)
 
 #### Pro
 - Fairly straight forward classification dataset between the 2 types of neutrinos. 
