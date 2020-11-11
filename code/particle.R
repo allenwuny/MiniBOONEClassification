@@ -10,13 +10,14 @@ elec_num = 36499
 muon_num = 93565
 n = elec_num + muon_num
 
-#Identify bad data/outliers where the values are -999
+#Identify bad data/outliers
 bad_data = which(abs(data$X20) >= 500)
 bad_elec = table(bad_data <= elec_num)[2]
 bad_muon = table(bad_data <= elec_num)[1]
 
 #Remove outliers and bad data
 data = data[-bad_data,]
+n = n - bad_elec - bad_muon
 
 
 #Generate the response vector assigning 1 to electron neutrino signals and 0 to muon neutrino signals
@@ -67,8 +68,8 @@ for (i in c(1:1)){
                   maxit = 1000000, weights = w, alpha = 0, type.measure="class", standardize = FALSE)
   ridge_time = proc.time() - ridge_start
   
-  beta0.hat = fit$a0
-  beta.hat = as.vector(fit$beta)
+  beta0.hat = elnet_fit$a0
+  beta.hat = as.vector(elnet_fit$beta)
   
   thrs = 0.5
   
