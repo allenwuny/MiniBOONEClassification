@@ -195,8 +195,9 @@ ggplot(error, aes(x=model, y=as.numeric(rate), fill = type)) + geom_boxplot()
 
 
 #Generate histogram of beta coefficients
-test = rbind(cbind(as.vector(elnet_fit$beta),rep("Elastic",50)), 
+beta = rbind(cbind(as.vector(elnet_fit$beta),rep("Elastic",50)), 
              cbind(as.vector(lasso_fit$beta),rep("Lasso",50)), 
              cbind(as.vector(ridge_fit$beta),rep("Ridge",50)))
-test = data.frame(test)
-ggplot(test) + aes(x=as.numeric(beta)) + geom_histogram(bins = 50) + facet_grid(model ~ .)
+beta = data.frame(beta)
+colnames(beta) = c("betas", "model")
+ggplot(beta) + aes(x=as.numeric(betas)) + geom_histogram(bins = 50) + facet_grid(model ~ .)
