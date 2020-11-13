@@ -172,12 +172,12 @@ for (i in c(1:1)){
   
   
   #Append error rates of each model to the error df
-  error = rbind(error, c(i, "Elastic Net","Train", train_error_rate(elnet_fit)[1]))
-  error = rbind(error, c(i, "Elastic Net", "Test", test_error_rate(elnet_fit)[1]))
-  error = rbind(error, c(i, "Lasso", "Train", train_error_rate(lasso_fit)[1]))
-  error = rbind(error, c(i, "Lasso", "Test", test_error_rate(lasso_fit)[1]))
-  error = rbind(error, c(i, "Ridge", "Train", train_error_rate(ridge_fit)[1]))
-  error = rbind(error, c(i, "Ridge", "Test", test_error_rate(ridge_fit)[1]))
+  error = rbind(error, c(i, "Elastic Net","Train", train_error_rate(elnet_fit)))
+  error = rbind(error, c(i, "Elastic Net", "Test", test_error_rate(elnet_fit)))
+  error = rbind(error, c(i, "Lasso", "Train", train_error_rate(lasso_fit)))
+  error = rbind(error, c(i, "Lasso", "Test", test_error_rate(lasso_fit)))
+  error = rbind(error, c(i, "Ridge", "Train", train_error_rate(ridge_fit)))
+  error = rbind(error, c(i, "Ridge", "Test", test_error_rate(ridge_fit)))
   
   
   #Gives an indication of how far the loop has progressed
