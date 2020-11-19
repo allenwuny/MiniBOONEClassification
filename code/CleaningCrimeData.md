@@ -5,7 +5,7 @@
 
 
 
-~~~r
+``r
 
 ##### Loading d2 = Cases Under Crime Against Women #####
 d2 <- read_csv("https://raw.githubusercontent.com/BenitaDiop/9891FinalProject/main/datasets/Crime_In_India/42_Cases_under_crime_against_women.csv", col_names = T)
@@ -36,4 +36,4 @@ names(data)[1] <- "ID"
 names(data)[19] <- "TotalCases"
 
 write.csv(data, file = 'CrimeInIndia.csv')
-~~~
+```
