@@ -17,11 +17,12 @@ library(ggpubr)
 library(rbenchmark)
 library(caTools)
 theme_set(theme_pubr())
-set.seed(42)
 
 
 # load data 
 data <- read_table2("https://archive.ics.uci.edu/ml/machine-learning-databases/00199/MiniBooNE_PID.txt", col_names = FALSE, skip = 1)
+data <- read_table2("C:/Users/Allen/Downloads/MiniBooNE.txt", col_names = FALSE, skip = 1)
+
 
 #These numbers can be found in the data file in the first line. They were excluded from the read_table2 line
 elec_num = 36499
@@ -42,7 +43,18 @@ p = dim(data)[2]
 # Factors  
 data$label <- as.numeric(c(replicate(elec_num - bad_elec, 1), replicate(muon_num - bad_muon, 0)))
 
+
+auc_table = data.frame(matrix(nrow = 50, ncol = 8))
+colnames(auc_table) = c("Model", "Round", 
+                        "L.Train.FPR", "L.Test.FPR", 
+                        "R.Train.FPR", "R.Test.FPR",  
+                        "E.Train.FPR", "E.Test.FPR")
+
+
 starting <- function(plots = F) { 
+  round = round + 1
+  set.seed(round)
+  
   #splitting data 10/90 ratio
   n_train <-as.integer(0.9*n)
   n_test = n - n_train
@@ -70,7 +82,6 @@ starting <- function(plots = F) {
       roc.FPR.train = roc.FP.train/roc.N.train #FPR
       roc.TPR.train = roc.TP.train/roc.P.train #TPR
       
-      
       roc.y.hat.test  = ifelse(prob_test >i, 1, 0 )
       roc.FP.test    = sum(y_test[roc.y.hat.test==1]==0)
       roc.TP.test     = sum(roc.y.hat.test[y_test==1] ==1)
@@ -79,16 +90,11 @@ starting <- function(plots = F) {
       roc.TN.test = sum(roc.y.hat.test[y_test==0] == 0)
       roc.FPR.test = roc.FP.test/roc.N.test # FPR = type 1 error
       roc.TPR.test = roc.TP.test/roc.P.test # TPR = 1 - type 2 error
-      
-      
+
       roc = rbind(roc,c(roc.FPR.train, roc.TPR.train, roc.FPR.test, roc.TPR.test))
-      
-      
     }
     colnames(roc) = c("FPR_train", "TPR_train", "FPR_test", "TPR_test")
     return(roc)
-    
-    
   }
   
   
@@ -112,22 +118,22 @@ starting <- function(plots = F) {
   #                        Lasso Regression                                     #
   ##################################################################################
   l.time.start <-Sys.time()  
-  l.cv <- cv.glmnet(X_train, y_train, family ="binomial", type.measure="auc", alpha=1, weights=weight)
-  l.fit <- glmnet(X_train, y_train, family="binomial", lambda =l.cv$lambda.min) 
+  l.cv <- cv.glmnet(X_train, y_train, family ="binomial", type.measure="auc", alpha=1)
+  l.fit <- glmnet(X_train, y_train, family="binomial", lambda =l.cv$lambda.min, alpha=1) 
   # fitting
   l.beta0.hat = as.vector(l.fit$a0)
   l.beta.hat = as.vector(l.fit$beta)
   #Probabilities
-  prob_train = exp(X_train %*% l.beta.hat + l.beta0.hat )/(1+ exp(X_train %*% l.beta.hat + l.beta0.hat )) 
-  prob_test = exp(X_test %*% l.beta.hat + l.beta0.hat )/(1 + exp(X_test %*% l.beta.hat + l.beta0.hat ))
+  l.prob_train = exp(X_train %*% l.beta.hat + l.beta0.hat )/(1+ exp(X_train %*% l.beta.hat + l.beta0.hat )) 
+  l.prob_test = exp(X_test %*% l.beta.hat + l.beta0.hat )/(1 + exp(X_test %*% l.beta.hat + l.beta0.hat ))
   plot(l.cv, sub = paste("LASSO:", l.cv$lambda.min))
   # Compute ROC
-  l.roc = roc_table(prob_train, prob_test)
+  l.roc = roc_table(l.prob_train, l.prob_test)
   plot_roc(l.roc, "Lasso")
   # Store AUC 
-  l.auc = c("l.train" = AUC(x=l.roc$FPR_train, y=l.roc$TPR_train), "l.test"=AUC(x=l.roc$FPR_test, y=l.roc$TPR_test)) %>% data.matrix() 
-  
-  
+  l.auc = c(round, 
+            AUC(x=l.roc$FPR_train, y=l.roc$TPR_train), 
+            AUC(x=l.roc$FPR_test, y=l.roc$TPR_test))
   l.time <- Sys.time() - l.time.start
  
   
@@ -136,20 +142,22 @@ starting <- function(plots = F) {
   #                        Ridge Regression                                     #
   ##################################################################################
   r.time.start <-Sys.time()   
-  r.cv <- cv.glmnet(X_train, y_train, family ="binomial", type.measure="auc", alpha=1)
-  r.fit <- glmnet(X_train, y_train, family="binomial", lambda = r.cv$lambda.min) 
+  r.cv <- cv.glmnet(X_train, y_train, family ="binomial", type.measure="auc", alpha=0)
+  r.fit <- glmnet(X_train, y_train, family="binomial", lambda = r.cv$lambda.min, alpha=0) 
   # fitting
   r.beta0.hat = as.vector(r.fit$a0)
   r.beta.hat = as.vector(r.fit$beta)
   #Probabilities
-  prob_train = exp(X_train %*% r.beta.hat + r.beta0.hat )/(1+ exp(X_train %*% r.beta.hat + r.beta0.hat )) 
-  prob_test = exp(X_test %*% r.beta.hat + r.beta0.hat )/(1 + exp(X_test %*% r.beta.hat + r.beta0.hat ))
+  r.prob_train = exp(X_train %*% r.beta.hat + r.beta0.hat )/(1+ exp(X_train %*% r.beta.hat + r.beta0.hat )) 
+  r.prob_test = exp(X_test %*% r.beta.hat + r.beta0.hat )/(1 + exp(X_test %*% r.beta.hat + r.beta0.hat ))
   plot(r.cv, sub = paste("RIDGE:", r.cv$lambda.min))
   # Compute ROC
-  r.roc = roc_table(prob_train, prob_test)
+  r.roc = roc_table(r.prob_train, r.prob_test)
   plot_roc(r.roc, "Ridge")
   # Store AUC 
-  r.auc
+  r.auc = c(round, 
+            AUC(x=r.roc$FPR_train, y=r.roc$TPR_train), 
+            AUC(x=r.roc$FPR_test, y=r.roc$TPR_test))
 
   r.time <- Sys.time() - r.time.start
   
@@ -159,20 +167,22 @@ starting <- function(plots = F) {
   ##################################################################################
   # 
   e.time.start <-Sys.time()  
-  e.cv <- cv.glmnet(X_train, y_train, family = "binomial", type.measure="auc", alpha=1)
-  e.fit <- glmnet(X_train, y_train, family="binomial", lambda =e.cv$lambda.min) 
+  e.cv <- cv.glmnet(X_train, y_train, family = "binomial", type.measure="auc", alpha=0.5)
+  e.fit <- glmnet(X_train, y_train, family="binomial", lambda =e.cv$lambda.min, alpha=0.5) 
   # fitting
   e.beta0.hat = as.vector(e.fit$a0)
   e.beta.hat = as.vector(e.fit$beta)
   #Probabilities
-  prob_train = exp(X_train %*% e.beta.hat + e.beta0.hat )/(1+ exp(X_train %*% e.beta.hat + e.beta0.hat )) 
-  prob_test = exp(X_test %*% e.beta.hat + e.beta0.hat )/(1 + exp(X_test %*% e.beta.hat + e.beta0.hat ))
+  e.prob_train = exp(X_train %*% e.beta.hat + e.beta0.hat )/(1+ exp(X_train %*% e.beta.hat + e.beta0.hat )) 
+  e.prob_test = exp(X_test %*% e.beta.hat + e.beta0.hat )/(1 + exp(X_test %*% e.beta.hat + e.beta0.hat ))
   plot(e.cv, sub = paste("ELASTIC-NET:", e.cv$lambda.min))
   # Compute ROC
-  e.roc = roc_table(prob_train, prob_test)
+  e.roc = roc_table(e.prob_train, e.prob_test)
   plot_roc(e.roc, "Ridge")
   # Store AUC 
-  e.auc
+  e.auc = c(round, 
+            AUC(x=e.roc$FPR_train, y=e.roc$TPR_train), 
+            AUC(x=e.roc$FPR_test, y=e.roc$TPR_test))
   
   e.time <- Sys.time() - e.time.start
   
@@ -180,7 +190,7 @@ starting <- function(plots = F) {
   ##################################################################################
   #                         Random Forest  Classification                         #
   ##################################################################################
-  # Random Forest 
+  # Random Forest
   rf_time_start <- Sys.time()
   classifier = randomForest(X_train, y_train, ntree = 10)
   # rf <- randomForest(label ~ . , X_train)
@@ -189,45 +199,47 @@ starting <- function(plots = F) {
   rf.y_pred_test <- predict(classifier, X_test)
   rf.residual_train <- as.vector(y_train - rf.y_pred_train)
   rf.residual_test <- as.vector(y_test - rf.y_pred_test)
-  # Difference 
+  # Difference
   delta  <- abs((1 - roc_rf$sensitivities) - (1 - roc_rf$specificties))
-  # Best Threshold 
+  # Best Threshold
   classifier$y
   roc_rf <- roc(y_train, classifier$y)
   theta_rf <- roc_rf$thresholds(which.min(delta))
   rf <- randomForest(y_train ~ ., X_train, cutoff=c(theta_rf, 1- theta_rf))
-  # Compute ROC 
+  # Compute ROC
   rf.roc.train <- roc(y_train, rf$votes[,2])
   rf.roc.test <- roc(y_test, rf$votes[,2])
-  # Store AUC 
+  # Store AUC
   RF.AUC_TRAIN <- rf.roc.train$auc
   RF.AUC_TEST <- rf.roc.test$auc
   #plots
   plot(classifier)
   rf_time <- Sys.time() - rf_time_start
-  
-  if(plots) { 
-    ## 10 fold CV plots 
+
+  if(plots) {
+    ## 10 fold CV plots
     plot(l.cv, sub = paste("Lasso:", l.cv$lambda.min)) #lambda.min
     plot(r.cv, sub = paste("Ridge:", r.cv$lambda.min)) #lambda.min
     plot(e.cv, sub = paste("Ridge:", e.cv$lambda.min))
-    
+
   }
-  
-  
-  
-  # 
-  # AUC_TRAIN <- list(lasso =L.AUC_TRAIN, ridge =R.AUC_TRAIN, elnet = E.AUC_TRAIN, rf = RF.AUC_TRAIN )
-  # AUC_TEST <- list(lasso =L.AUC_TEST, ridge =R.AUC_TEST, elnet = E.AUC_TEST, rf = RF.AUC_TEST)
-  # 
-  # 
+
+
+
+
+  AUC_TRAIN <- list(lasso =L.AUC_TRAIN, ridge =R.AUC_TRAIN, elnet = E.AUC_TRAIN, rf = RF.AUC_TRAIN )
+  AUC_TEST <- list(lasso =L.AUC_TEST, ridge =R.AUC_TEST, elnet = E.AUC_TEST, rf = RF.AUC_TEST)
+
+
   times <- list(lasso = l.time, ridge = r.time,
                 elnet = e.time, rf = rf.time)
   
-  return(list(AUC_TRAIN, AUC_TEST, times))
+  aucs = matrix(cbind(l.auc, r.auc, e.auc), ncol=3)
+  
+  return(aucs)
+  #return(list(AUC_TRAIN, AUC_TEST, times))
 }
 
-set.seed(42)
 just_one <- starting(plots = T)
 
 ###################################################################################
@@ -235,9 +247,13 @@ just_one <- starting(plots = T)
 #################################################################################
 
 
-set.seed(42)
-M <- 50
-models <- replicate(M, unlist(starting(plots = F))) %>% t()
+round = 0
+M <- 2
+models <- replicate(M, unlist(starting(plots = F))) %>% 
+  data.frame()%>% 
+  t()%>% 
+  data.frame()%>% 
+  mutate(Model = rep(c("Lasso", "Ridge", "Elastic Net"), M))
 
 
 #AUC_TRAIN <- models[, 1:4] %>% data.frame() %>% mutate(dataset="test")
