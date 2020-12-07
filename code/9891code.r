@@ -184,7 +184,7 @@ for (i in 1:50){
   ##################################################################################
   # Random Forest
   rf.time.start <- Sys.time()
-  rf.fit = randomForest(x = X_train, y = as.factor(y_train), ntree = 100, mtry=sqrt(p), importance=TRUE)
+  rf.fit = randomForest(x = X_train, y = as.factor(y_train), mtry=sqrt(p), importance=TRUE)
   rf.time <- round(Sys.time() - rf.time.start,1)
   
   # fiting
@@ -253,7 +253,7 @@ e.time.all = Sys.time() - e.time.start
 ##################################################################################
 
 rf.time.start <- Sys.time()
-rf.fit = randomForest(x = X, y = as.factor(y), ntree = 100, mtry=sqrt(p), importance=TRUE)
+rf.fit = randomForest(x = X, y = as.factor(y), mtry=sqrt(p), importance=TRUE)
 rf.time.all <- round(Sys.time() - rf.time.start,1)
 
 
